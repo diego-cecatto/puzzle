@@ -4,11 +4,13 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "compile": "npx webpack --config webpack.config.js"
+        "compile": "npx webpack --config webpack.config.js",
+        "compile:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"**/*.spec.ts\" --exec \"npx webpack --config webpack.config.js\" -e ts"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "nodemon": "^2.0.22",
         "pixi.js": "^7.2.4",
         "sass": "^1.63.6",
         "typescript": "^5.1.3"

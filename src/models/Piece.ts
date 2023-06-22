@@ -2,12 +2,10 @@ import * as PIXI from 'pixi.js';
 
 export class Piece {
     constructor(
-        private color: string,
+        public color: string,
         private width: number,
         private height: number
-    ) {
-        console.log(`you have a new piece ${this.color}`);
-    }
+    ) {}
 
     static random(width: number, height: number) {
         var colors = Object.keys(EnumColorPieces);
