@@ -9,6 +9,8 @@ export class Board {
 
     pieces: Piece[][] = [];
 
+    selectedPieces: Piece[] = [];
+
     constructor() {
         this.board = new PIXI.Application<HTMLCanvasElement>({
             width: this.size * this.cellSize,
@@ -49,7 +51,15 @@ export class Board {
     }
 
     selectPiece(piece: Piece) {
-        console.log(`piece ${piece}`);
+        if (this.selectedPieces.indexOf(piece) == -1) {
+            this.selectedPieces = [];
+            return;
+        }
+        this.selectedPieces.push(piece);
+        if (this.selectedPieces.length == 2) {
+            this.swapPieces(this.selectedPieces[0], this.selectedPieces[1]);
+            this.selectedPieces = [];
+        }
     }
 
     swapPieces(piece1: Piece, piece2: Piece): void {
