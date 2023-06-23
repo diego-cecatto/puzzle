@@ -42,7 +42,6 @@ export class Board {
                 );
                 renderedPiece.interactive = true;
                 renderedPiece.on('pointerdown', () => this.selectPiece(piece));
-
                 this.pieces[i][j] = piece;
                 this.board.stage.addChild(renderedPiece);
             }
@@ -51,6 +50,23 @@ export class Board {
 
     selectPiece(piece: Piece) {
         console.log(`piece ${piece}`);
+    }
+
+    swapPieces(piece1: Piece, piece2: Piece): void {
+        this.pieces[piece1.row(this.cellSize)][piece1.col(this.cellSize)] =
+            piece1;
+        this.pieces[piece2.row(this.cellSize)][piece2.col(this.cellSize)] =
+            piece2;
+
+        const tempPosition = new PIXI.Point(
+            piece1.rendered?.position.x,
+            piece1.rendered?.position.y
+        );
+        piece1.rendered?.position.set(
+            piece2.rendered?.position.x,
+            piece2.rendered?.position.y
+        );
+        piece2.rendered?.position.set(tempPosition.x, tempPosition.y);
     }
 
     checkValidOptions(): boolean {
