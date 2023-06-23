@@ -51,7 +51,6 @@ export class Board {
     }
 
     selectPiece(piece: Piece) {
-        console.log(piece);
         if (this.selectedPieces.indexOf(piece) !== -1) {
             this.selectedPieces = [];
             return;
@@ -67,12 +66,22 @@ export class Board {
     }
 
     swapPieces(piece1: Piece, piece2: Piece): void {
+        var positions: PieceSwapPositions = {
+            piece1: {
+                x: piece1.row(this.cellSize),
+                y: piece1.col(this.cellSize),
+            },
+            piece2: {
+                x: piece2.row(this.cellSize),
+                y: piece2.col(this.cellSize),
+            },
+        };
         console.log(piece1, piece2);
-        this.pieces[piece1.row(this.cellSize)][piece1.col(this.cellSize)] =
-            piece1;
-        this.pieces[piece2.row(this.cellSize)][piece2.col(this.cellSize)] =
-            piece2;
-
+        if (!this.validMove(positions)) {
+            return;
+        }
+        this.pieces[positions.piece1.x][positions.piece1.y] = piece1;
+        this.pieces[positions.piece2.x][positions.piece1.y] = piece2;
         const tempPosition = new PIXI.Point(
             piece1.rendered?.position.x,
             piece1.rendered?.position.y
@@ -82,6 +91,16 @@ export class Board {
             piece2.rendered?.position.y
         );
         piece2.rendered?.position.set(tempPosition.x, tempPosition.y);
+    }
+
+    validMove(positions: PieceSwapPositions) {
+        var diffY = positions.piece2.y - positions.piece1.y;
+        var diffX = positions.piece2.x - positions.piece1.x;
+        console.log(diffX, diffY);
+        return (
+            ((diffY >= 0 && diffY <= 1) || (diffY <= 0 && diffY >= -1)) &&
+            ((diffX >= 0 && diffX <= 1) || (diffX <= 0 && diffX >= -1))
+        );
     }
 
     checkValidOptions(): boolean {
