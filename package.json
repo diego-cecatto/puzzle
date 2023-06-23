@@ -4,8 +4,8 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "compile": "npx webpack --config webpack.config.js",
-        "compile:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"**/*.spec.ts\" --exec \"npx webpack --config webpack.config.js\" -e ts"
+        "build": "npx webpack --config webpack.config.js",
+        "build:watch": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"**/*.spec.ts\" --exec \"npx webpack --config webpack.config.js\" -e ts"
     },
     "author": "",
     "license": "ISC",

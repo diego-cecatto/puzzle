@@ -51,18 +51,23 @@ export class Board {
     }
 
     selectPiece(piece: Piece) {
-        if (this.selectedPieces.indexOf(piece) == -1) {
+        console.log(piece);
+        if (this.selectedPieces.indexOf(piece) !== -1) {
             this.selectedPieces = [];
             return;
         }
         this.selectedPieces.push(piece);
         if (this.selectedPieces.length == 2) {
-            this.swapPieces(this.selectedPieces[0], this.selectedPieces[1]);
-            this.selectedPieces = [];
+            try {
+                this.swapPieces(this.selectedPieces[0], this.selectedPieces[1]);
+            } finally {
+                this.selectedPieces = [];
+            }
         }
     }
 
     swapPieces(piece1: Piece, piece2: Piece): void {
+        console.log(piece1, piece2);
         this.pieces[piece1.row(this.cellSize)][piece1.col(this.cellSize)] =
             piece1;
         this.pieces[piece2.row(this.cellSize)][piece2.col(this.cellSize)] =

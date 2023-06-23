@@ -28,14 +28,14 @@ export class Piece {
         if (!this.rendered) {
             throw 'Not possible to retrieve when object is not set';
         }
-        return this.rendered.position.x - cellSize;
+        return this.rendered.position.x / cellSize;
     }
 
     col(cellSize: number): number {
         if (!this.rendered) {
             throw 'Not possible to retrieve when object is not set';
         }
-        return this.rendered.position.y - cellSize;
+        return this.rendered.position.y / cellSize;
     }
 }
 
