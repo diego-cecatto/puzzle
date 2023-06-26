@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { Piece } from './Piece';
+import { Dictionary } from '../utils/Dictionary';
+import { render } from 'sass';
 
 export class Board {
     size = 8;
@@ -39,11 +41,21 @@ export class Board {
                 const piece = Piece.random(this.cellSize, this.cellSize);
                 var renderedPiece = piece.render();
                 renderedPiece.position.set(
-                    i * this.cellSize,
-                    j * this.cellSize
+                    j * this.cellSize,
+                    i * this.cellSize
                 );
                 renderedPiece.interactive = true;
                 renderedPiece.on('pointerdown', () => this.selectPiece(piece));
+                const text = new PIXI.Text(
+                    `[${piece.row(this.cellSize)},${piece.col(this.cellSize)}]`,
+                    { fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }
+                );
+                text.x = 20;
+                text.y = 20;
+                renderedPiece.addChild(text);
+                // const row = piece.row(this.cellSize);
+                // const col = piece.col(this.cellSize);
+                // this.pieces[row] = this.pieces[row] ?? [];
                 this.pieces[i][j] = piece;
                 this.board.stage.addChild(renderedPiece);
             }
@@ -76,12 +88,12 @@ export class Board {
                 y: piece2.col(this.cellSize),
             },
         };
-        console.log(piece1, piece2);
         if (!this.validMove(positions)) {
             return;
         }
-        this.pieces[positions.piece1.x][positions.piece1.y] = piece1;
-        this.pieces[positions.piece2.x][positions.piece1.y] = piece2;
+        console.log(positions);
+        this.pieces[positions.piece1.x][positions.piece1.y] = piece2;
+        this.pieces[positions.piece2.x][positions.piece2.y] = piece1;
         const tempPosition = new PIXI.Point(
             piece1.rendered?.position.x,
             piece1.rendered?.position.y
@@ -91,16 +103,88 @@ export class Board {
             piece2.rendered?.position.y
         );
         piece2.rendered?.position.set(tempPosition.x, tempPosition.y);
+        let matches = this.findMatches(piece1);
+        if (matches.length >= 3) {
+            matches.each((key, item) => {
+                item.rendered!.alpha = 0.4;
+            });
+        }
+        this.findMatches(piece2);
     }
 
     validMove(positions: PieceSwapPositions) {
         var diffY = positions.piece2.y - positions.piece1.y;
         var diffX = positions.piece2.x - positions.piece1.x;
-        console.log(diffX, diffY);
         return (
             ((diffY >= 0 && diffY <= 1) || (diffY <= 0 && diffY >= -1)) &&
             ((diffX >= 0 && diffX <= 1) || (diffX <= 0 && diffX >= -1))
         );
+    }
+
+    findMatches(piece: Piece): Dictionary<Piece> {
+        const matches = new Dictionary<Piece>();
+        matches.add(
+            `[${piece.row(this.cellSize)},${piece.col(this.cellSize)}]`,
+            piece
+        );
+        this.getHorizontalMatches(piece, matches);
+        this.getVerticalMatches(piece, matches);
+        console.log(matches.items, matches.length);
+        return matches;
+    }
+
+    getHorizontalMatches(piece: Piece, matches: Dictionary<Piece>) {
+        const row = piece.row(this.cellSize);
+        const col = piece.col(this.cellSize);
+        console.log(row, col);
+        let leftCol = col - 1;
+        while (
+            leftCol >= 0 &&
+            this.pieces[row][leftCol].color === piece.color &&
+            !matches.exist(`[${row},${leftCol}]`)
+        ) {
+            matches.add(`[${row},${leftCol}]`, this.pieces[row][leftCol]);
+            this.getVerticalMatches(this.pieces[row][leftCol], matches);
+            leftCol--;
+        }
+        let rightCol = col + 1;
+        while (
+            rightCol < this.size &&
+            this.pieces[row][rightCol].color === piece.color &&
+            !matches.exist(`[${row},${rightCol}]`)
+        ) {
+            matches.add(`[${row},${rightCol}]`, this.pieces[row][rightCol]);
+            this.getVerticalMatches(this.pieces[row][rightCol], matches);
+            rightCol++;
+        }
+        return matches;
+    }
+
+    getVerticalMatches(piece: Piece, matches: Dictionary<Piece>) {
+        const row = piece.row(this.cellSize);
+        const col = piece.col(this.cellSize);
+        let aboveRow = row - 1;
+        while (
+            aboveRow >= 0 &&
+            this.pieces[aboveRow][col].color === piece.color &&
+            !matches.exist(`[${aboveRow},${col}]`)
+        ) {
+            matches.add(`[${aboveRow},${col}]`, this.pieces[aboveRow][col]);
+            this.getHorizontalMatches(this.pieces[aboveRow][col], matches);
+            aboveRow--;
+        }
+        let belowRow = row + 1;
+        while (
+            belowRow < this.size &&
+            this.pieces[belowRow][col].color === piece.color &&
+            !matches.exist(`[${belowRow},${col}]`)
+        ) {
+            matches.add(`[${belowRow},${col}]`, this.pieces[belowRow][col]);
+            this.getHorizontalMatches(this.pieces[belowRow][col], matches);
+            belowRow++;
+        }
+
+        return matches;
     }
 
     checkValidOptions(): boolean {
