@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { Piece } from './Piece';
 import { Dictionary } from '../utils/Dictionary';
-import { render } from 'sass';
+import { Coordinate, PieceSwapPositions } from '../types/Coordinate';
 
 export class Board {
     size = 8;
@@ -35,31 +35,29 @@ export class Board {
 
     private summonPieces() {
         this.pieces = [];
-        for (let i = 0; i < this.size; i++) {
-            this.pieces[i] = [];
-            for (let j = 0; j < this.size; j++) {
-                const piece = Piece.random(this.cellSize, this.cellSize);
-                var renderedPiece = piece.render();
-                renderedPiece.position.set(
-                    j * this.cellSize,
-                    i * this.cellSize
-                );
-                renderedPiece.interactive = true;
-                renderedPiece.on('pointerdown', () => this.selectPiece(piece));
-                const text = new PIXI.Text(
-                    `[${piece.row(this.cellSize)},${piece.col(this.cellSize)}]`,
-                    { fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }
-                );
-                text.x = 20;
-                text.y = 20;
-                renderedPiece.addChild(text);
-                // const row = piece.row(this.cellSize);
-                // const col = piece.col(this.cellSize);
-                // this.pieces[row] = this.pieces[row] ?? [];
-                this.pieces[i][j] = piece;
-                this.board.stage.addChild(renderedPiece);
+        for (let row = 0; row < this.size; row++) {
+            this.pieces[row] = [];
+            for (let col = 0; col < this.size; col++) {
+                this.summonPiece(row, col);
             }
         }
+    }
+
+    private summonPiece(row: number, col: number) {
+        const piece = Piece.random(this.cellSize, this.cellSize);
+        var renderedPiece = piece.render();
+        renderedPiece.position.set(col * this.cellSize, row * this.cellSize);
+        renderedPiece.interactive = true;
+        renderedPiece.on('pointerdown', () => this.selectPiece(piece));
+        const text = new PIXI.Text(
+            `[${piece.row(this.cellSize)},${piece.col(this.cellSize)}]`,
+            { fontFamily: 'Arial', fontSize: 24, fill: 0xffffff }
+        );
+        text.x = 20;
+        text.y = 20;
+        renderedPiece.addChild(text);
+        this.pieces[row][col] = piece;
+        this.board.stage.addChild(renderedPiece);
     }
 
     selectPiece(piece: Piece) {
@@ -91,7 +89,6 @@ export class Board {
         if (!this.validMove(positions)) {
             return;
         }
-        console.log(positions);
         this.pieces[positions.piece1.x][positions.piece1.y] = piece2;
         this.pieces[positions.piece2.x][positions.piece2.y] = piece1;
         const tempPosition = new PIXI.Point(
@@ -103,13 +100,66 @@ export class Board {
             piece2.rendered?.position.y
         );
         piece2.rendered?.position.set(tempPosition.x, tempPosition.y);
-        let matches = this.findMatches(piece1);
+        let removedPieces = this.removePieces(piece1);
+        removedPieces.push(...this.removePieces(piece2));
+        var deleteds = this.reorderBoard();
+        this.summonDeletedPieces(deleteds);
+    }
+
+    summonDeletedPieces(deleteds: Coordinate[]) {
+        deleteds.forEach((deleted) => {
+            this.summonPiece(deleted.x, deleted.y);
+        });
+    }
+
+    removePieces(piece: Piece) {
+        const matches = this.findMatches(piece);
+        let removed: Coordinate[] = [];
         if (matches.length >= 3) {
             matches.each((key, item) => {
-                item.rendered!.alpha = 0.4;
+                const toRemove = {
+                    x: item.row(this.cellSize),
+                    y: item.col(this.cellSize),
+                };
+                removed.push(toRemove);
+                this.pieces[toRemove.x][toRemove.y].deleted = true;
+                this.board.stage.removeChild(item.rendered!);
             });
         }
-        this.findMatches(piece2);
+        return removed;
+    }
+
+    reorderBoard() {
+        var remainings: Coordinate[] = [];
+        for (var col = this.pieces[0].length - 1; col >= 0; col--) {
+            var deleteds: Coordinate[] = [];
+            for (var line = this.pieces.length - 1; line >= 0; line--) {
+                var piece = this.pieces[line][col];
+                if (piece.deleted) {
+                    console.log(deleteds);
+                    deleteds.push({
+                        x: piece.row(this.cellSize),
+                        y: piece.col(this.cellSize),
+                    });
+                } else {
+                    if (deleteds.length) {
+                        const deleted = deleteds[0];
+                        deleteds.push({
+                            x: piece.row(this.cellSize),
+                            y: piece.col(this.cellSize),
+                        });
+                        piece.rendered?.position.set(
+                            deleted.y * this.cellSize,
+                            deleted.x * this.cellSize
+                        );
+                        this.pieces[deleted.x][deleted.y] = piece;
+                        deleteds.shift();
+                    }
+                }
+            }
+            remainings.push(...deleteds);
+        }
+        return remainings;
     }
 
     validMove(positions: PieceSwapPositions) {
@@ -129,14 +179,12 @@ export class Board {
         );
         this.getHorizontalMatches(piece, matches);
         this.getVerticalMatches(piece, matches);
-        console.log(matches.items, matches.length);
         return matches;
     }
 
     getHorizontalMatches(piece: Piece, matches: Dictionary<Piece>) {
         const row = piece.row(this.cellSize);
         const col = piece.col(this.cellSize);
-        console.log(row, col);
         let leftCol = col - 1;
         while (
             leftCol >= 0 &&

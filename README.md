@@ -19,8 +19,8 @@ There is a puzzle game
 -   (ok) Create Board 8x8
 -   (ok) Create pieces (5 possible pieces) (ok)
 -   (ok) There should be at least one exchange on the board on the building
--   Player could exchange vertically horizontally or adjacent
--   If the exchage results in 3 or more pieces of the same type they will disapear
+-   (ok)Player could exchange vertically horizontally or adjacent
+-   (ok)If the exchage results in 3 or more pieces of the same type they will disapear
 -   If the exchange results in an invalid sequence, pieces will be back on original positions
 -   When any piece disapears, the pieces above this will be positioned in the place and new pieces will summon on the top of board
 -   Pieces could be excahaged by click or drag and drop

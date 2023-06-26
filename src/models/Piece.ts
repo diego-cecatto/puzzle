@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 
 export class Piece {
     public rendered: PIXI.Graphics | null = null;
+    public deleted: boolean = false;
 
     constructor(
         public color: string,
