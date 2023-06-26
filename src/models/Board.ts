@@ -75,7 +75,7 @@ export class Board {
         }
     }
 
-    swapPieces(piece1: Piece, piece2: Piece): void {
+    swapPieces(piece1: Piece, piece2: Piece, deleteOccurences = true): void {
         var positions: PieceSwapPositions = {
             piece1: {
                 x: piece1.row(this.cellSize),
@@ -100,10 +100,13 @@ export class Board {
             piece2.rendered?.position.y
         );
         piece2.rendered?.position.set(tempPosition.x, tempPosition.y);
-        let removedPieces = this.removePieces(piece1);
-        removedPieces.push(...this.removePieces(piece2));
-        var deleteds = this.reorderBoard();
-        this.summonDeletedPieces(deleteds);
+        if (deleteOccurences) {
+            if (!this.removePieces(piece1) && !this.removePieces(piece2)) {
+                this.swapPieces(piece1, piece2, false);
+            } else {
+                this.summonDeletedPieces(this.reorderBoard());
+            }
+        }
     }
 
     summonDeletedPieces(deleteds: Coordinate[]) {
@@ -115,18 +118,19 @@ export class Board {
     removePieces(piece: Piece) {
         const matches = this.findMatches(piece);
         let removed: Coordinate[] = [];
-        if (matches.length >= 3) {
-            matches.each((key, item) => {
-                const toRemove = {
-                    x: item.row(this.cellSize),
-                    y: item.col(this.cellSize),
-                };
-                removed.push(toRemove);
-                this.pieces[toRemove.x][toRemove.y].deleted = true;
-                this.board.stage.removeChild(item.rendered!);
-            });
+        if (matches.length < 3) {
+            return false;
         }
-        return removed;
+        matches.each((key, item) => {
+            const toRemove = {
+                x: item.row(this.cellSize),
+                y: item.col(this.cellSize),
+            };
+            removed.push(toRemove);
+            this.pieces[toRemove.x][toRemove.y].deleted = true;
+            this.board.stage.removeChild(item.rendered!);
+        });
+        return true;
     }
 
     reorderBoard() {
@@ -136,7 +140,6 @@ export class Board {
             for (var line = this.pieces.length - 1; line >= 0; line--) {
                 var piece = this.pieces[line][col];
                 if (piece.deleted) {
-                    console.log(deleteds);
                     deleteds.push({
                         x: piece.row(this.cellSize),
                         y: piece.col(this.cellSize),
