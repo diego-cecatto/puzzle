@@ -22,7 +22,7 @@ There is a puzzle game
 -   (ok)Player could exchange vertically horizontally or adjacent
 -   (ok)If the exchage results in 3 or more pieces of the same type they will disapear
 -   If the exchange results in an invalid sequence, pieces will be back on original positions
--   When any piece disapears, the pieces above this will be positioned in the place and new pieces will summon on the top of board
+-   (ok)When any piece disapears, the pieces above this will be positioned in the place and new pieces will summon on the top of board
 -   Pieces could be excahaged by click or drag and drop
 -   The game ends when the player reaches X number of points or when Y time is up;
 -   The game should show a popup with the result and option to restart the game when finishing the game.
